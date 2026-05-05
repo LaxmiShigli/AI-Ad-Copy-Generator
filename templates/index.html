@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AdForge AI — Free Ad Copy Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #080b12;
+      --surface: #0f1420;
+      --card:    #141925;
+      --border:  #1e2535;
+      --accent:  #4ade80;
+      --accent2: #38bdf8;
+      --purple:  #c084fc;
+      --success: #34d399;
+      --text:    #e2e8f0;
+      --muted:   #64748b;
+      --danger:  #f87171;
+      --glow:    rgba(74,222,128,0.15);
+    }
+
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh; overflow-x: hidden;
+    }
+
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(74,222,128,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(74,222,128,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none; z-index: 0;
+    }
+
+    header {
+      position: relative; z-index: 10;
+      text-align: center; padding: 48px 20px 32px;
+    }
+
+    .free-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+      letter-spacing: 3px; text-transform: uppercase; color: var(--accent);
+      background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3);
+      padding: 5px 14px; border-radius: 20px; margin-bottom: 20px;
+      animation: pulse-badge 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse-badge {
+      0%,100% { box-shadow: 0 0 0 0 rgba(74,222,128,0.3); }
+      50%      { box-shadow: 0 0 0 8px rgba(74,222,128,0); }
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.2rem, 5.5vw, 3.8rem);
+      font-weight: 800; letter-spacing: -1px; line-height: 1.1;
+      background: linear-gradient(135deg, #e2e8f0 0%, var(--accent) 55%, var(--accent2) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    .subtitle {
+      margin-top: 10px; color: var(--muted); font-size: 0.9rem;
+    }
+
+    .powered-by {
+      margin-top: 12px; font-size: 0.78rem; color: var(--muted); letter-spacing: 1px;
+    }
+
+    .container {
+      position: relative; z-index: 10;
+      max-width: 1150px; margin: 0 auto;
+      padding: 0 20px 80px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;
+    }
+    @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px; transition: border-color 0.3s;
+    }
+    .card:hover { border-color: rgba(74,222,128,0.25); }
+
+    .card-title {
+      font-family: 'Syne', sans-serif; font-size: 0.78rem;
+      font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 22px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title::before {
+      content: ''; display: inline-block; width: 8px; height: 8px;
+      border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent);
+    }
+
+    label {
+      display: block; font-size: 0.72rem; color: var(--muted);
+      letter-spacing: 1px; text-transform: uppercase;
+      margin-bottom: 7px; margin-top: 18px;
+    }
+    label:first-of-type { margin-top: 0; }
+
+    input[type="text"], textarea, select {
+      width: 100%; background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.9rem;
+      padding: 12px 14px; border-radius: 10px; outline: none; resize: none;
+      transition: border-color 0.25s, box-shadow 0.25s;
+      appearance: none; -webkit-appearance: none;
+    }
+    input[type="text"]:focus, textarea:focus, select:focus {
+      border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow);
+    }
+    input::placeholder, textarea::placeholder { color: var(--muted); opacity: 0.55; }
+
+    .select-wrapper { position: relative; }
+    .select-wrapper::after {
+      content: '▾'; position: absolute; right: 14px; top: 50%;
+      transform: translateY(-50%); color: var(--muted); pointer-events: none;
+    }
+
+    .toggle-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+
+    .toggle-btn {
+      flex: 1; min-width: 70px; padding: 9px 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--muted); font-family: 'DM Mono', monospace;
+      font-size: 0.79rem; border-radius: 8px;
+      cursor: pointer; transition: all 0.2s; text-align: center;
+    }
+    .toggle-btn:hover { border-color: var(--accent); color: var(--text); }
+    .format-btn.active { background: rgba(74,222,128,0.12); border-color: var(--accent); color: var(--accent); }
+    .tone-btn.active[data-value="fun"]    { background: rgba(252,211,77,0.1);   border-color: #fcd34d; color: #fcd34d; }
+    .tone-btn.active[data-value="bold"]   { background: rgba(192,132,252,0.12); border-color: var(--purple); color: var(--purple); }
+    .tone-btn.active[data-value="formal"] { background: rgba(56,189,248,0.12);  border-color: var(--accent2); color: var(--accent2); }
+
+    #generateBtn {
+      width: 100%; margin-top: 22px; padding: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none; color: #0a0f1a;
+      font-family: 'Syne', sans-serif; font-size: 0.95rem;
+      font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+      border-radius: 10px; cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 24px rgba(74,222,128,0.3);
+    }
+    #generateBtn:hover:not(:disabled) {
+      opacity: 0.9; transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(74,222,128,0.45);
+    }
+    #generateBtn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .loader { display: none; align-items: center; gap: 10px; justify-content: center; margin-top: 16px; font-size: 0.82rem; color: var(--muted); }
+    .loader.show { display: flex; }
+    .dots span { display: inline-block; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: bounce 1.2s infinite; }
+    .dots span:nth-child(2) { animation-delay: 0.2s; background: var(--accent2); }
+    .dots span:nth-child(3) { animation-delay: 0.4s; background: var(--purple); }
+    @keyframes bounce { 0%,80%,100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-8px); opacity: 1; } }
+
+    #outputCard { display: none; }
+    #outputCard.show { display: block; }
+
+    .output-meta {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;
+    }
+    .output-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 6px; font-weight: 600;
+    }
+    .badge-social { background: rgba(74,222,128,0.12); color: var(--accent); }
+    .badge-banner { background: rgba(56,189,248,0.12); color: var(--accent2); }
+    .badge-email  { background: rgba(192,132,252,0.12); color: var(--purple); }
+    .badge-platform {
+      display: inline-flex; align-items: center;
+      font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 6px; font-weight: 600;
+      background: rgba(252,211,77,0.1); color: #fcd34d;
+    }
+
+    #adCopyText {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px;
+      font-size: 0.88rem; line-height: 1.8;
+      white-space: pre-wrap; word-break: break-word;
+      color: var(--text); min-height: 120px;
+    }
+
+    .copy-btn {
+      margin-top: 12px; padding: 8px 16px;
+      background: transparent; border: 1px solid var(--border);
+      color: var(--muted); font-family: 'DM Mono', monospace;
+      font-size: 0.78rem; letter-spacing: 1px; border-radius: 7px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .image-section { margin-top: 24px; }
+    .img-label { font-size: 0.7rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+
+    #productImage {
+      width: 100%; border-radius: 12px; border: 1px solid var(--border);
+      display: none; object-fit: cover;
+    }
+    .img-loading {
+      display: none; width: 100%; height: 200px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; align-items: center; justify-content: center;
+      color: var(--muted); font-size: 0.82rem; flex-direction: column; gap: 10px;
+    }
+    .img-loading.show { display: flex; }
+    .img-spinner {
+      width: 28px; height: 28px; border: 2px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #errorBox {
+      display: none;
+      background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.3);
+      color: var(--danger); padding: 12px 16px; border-radius: 10px;
+      margin-top: 14px; font-size: 0.84rem; line-height: 1.6;
+    }
+    #errorBox.show { display: block; }
+
+    footer {
+      position: relative; z-index: 10; text-align: center;
+      padding: 20px; color: var(--muted); font-size: 0.73rem;
+      border-top: 1px solid var(--border);
+    }
+    footer span { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="free-badge">🎓 100% Free · No Credit Card</div>
+  <h1>AdForge AI</h1>
+  <p class="subtitle">Generate pro-level ad copy + product images — completely free</p>
+  <div class="powered-by">⚡ AI-Powered · Instant Results · Zero Cost</div>
+</header>
+
+<div class="container">
+
+  <!-- Left: Input -->
+  <div class="card">
+    <div class="card-title">Create Your Ad</div>
+
+    <label>Product / Brand Name</label>
+    <input type="text" id="productName" placeholder="e.g. Nike Air Max, iPhone 15" maxlength="80" />
+
+    <label>Product Description</label>
+    <textarea id="description" rows="3"
+      placeholder="e.g. Premium running shoes with air cushioning and lightweight design for athletes."></textarea>
+
+    <label>Target Audience</label>
+    <input type="text" id="audience" placeholder="e.g. college students, fitness lovers, working professionals" />
+
+    <label>Platform</label>
+    <div class="select-wrapper">
+      <select id="platform">
+        <option value="instagram">📸 Instagram</option>
+        <option value="facebook">👥 Facebook</option>
+        <option value="twitter">🐦 Twitter / X</option>
+        <option value="linkedin">💼 LinkedIn</option>
+        <option value="youtube">▶️ YouTube</option>
+      </select>
+    </div>
+
+    <label>Ad Format</label>
+    <div class="toggle-group" id="formatGroup">
+      <button class="toggle-btn format-btn active" data-value="social">📱 Social</button>
+      <button class="toggle-btn format-btn" data-value="banner">🖼️ Banner</button>
+      <button class="toggle-btn format-btn" data-value="email">📧 Email</button>
+    </div>
+
+    <label>Tone</label>
+    <div class="toggle-group" id="toneGroup">
+      <button class="toggle-btn tone-btn" data-value="fun">😄 Fun</button>
+      <button class="toggle-btn tone-btn active" data-value="bold">🔥 Bold</button>
+      <button class="toggle-btn tone-btn" data-value="formal">💼 Formal</button>
+    </div>
+
+    <button id="generateBtn">⚡ Generate Ad — Free</button>
+
+    <div class="loader" id="loader">
+      <div class="dots"><span></span><span></span><span></span></div>
+      Generating your ad copy...
+    </div>
+
+    <div id="errorBox"></div>
+  </div>
+
+  <!-- Right: Output -->
+  <div id="outputCard" class="card">
+    <div class="card-title">Generated Ad</div>
+    <div class="output-meta">
+      <div id="outputBadge" class="output-badge"></div>
+      <div id="platformBadge" class="badge-platform"></div>
+    </div>
+    <div id="adCopyText"></div>
+    <button class="copy-btn" id="copyBtn">⎘ Copy to Clipboard</button>
+
+    <div class="image-section">
+      <div class="img-label">🖼 AI Product Image</div>
+      <div class="img-loading" id="imgLoading">
+        <div class="img-spinner"></div>
+        Generating image...
+      </div>
+      <img id="productImage" alt="AI Generated Product Image" />
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  AdForge AI · <span>Free Forever</span> · Built with Python & Flask
+</footer>
+
+<script>
+  let selectedFormat = 'social';
+  let selectedTone   = 'bold';
+
+  function setupToggles(groupId, key) {
+    document.getElementById(groupId).querySelectorAll('.toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById(groupId).querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (key === 'format') selectedFormat = btn.dataset.value;
+        else selectedTone = btn.dataset.value;
+      });
+    });
+  }
+  setupToggles('formatGroup', 'format');
+  setupToggles('toneGroup',   'tone');
+
+  document.getElementById('generateBtn').addEventListener('click', async () => {
+    const productName = document.getElementById('productName').value.trim();
+    const description = document.getElementById('description').value.trim();
+    const audience    = document.getElementById('audience').value.trim() || 'general audience';
+    const platform    = document.getElementById('platform').value;
+
+    if (!productName || !description) {
+      showError('⚠️ Please fill in Product Name and Description.'); return;
+    }
+
+    setLoading(true); hideError(); hideOutput();
+
+    try {
+      const res  = await fetch('/generate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_name: productName, description,
+          audience, format: selectedFormat,
+          tone: selectedTone, platform
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) { showError(data.error || 'Something went wrong.'); return; }
+      showOutput(data);
+    } catch {
+      showError('❌ Network error. Make sure Flask is running.');
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  function setLoading(on) {
+    document.getElementById('generateBtn').disabled = on;
+    document.getElementById('loader').classList.toggle('show', on);
+  }
+  function showError(msg) { const b = document.getElementById('errorBox'); b.innerHTML = msg; b.classList.add('show'); }
+  function hideError()    { document.getElementById('errorBox').classList.remove('show'); }
+  function hideOutput()   { document.getElementById('outputCard').classList.remove('show'); }
+
+  const platformIcons = {
+    instagram: '📸 Instagram', facebook: '👥 Facebook',
+    twitter: '🐦 Twitter/X', linkedin: '💼 LinkedIn', youtube: '▶️ YouTube'
+  };
+
+  function showOutput(data) {
+    const badgeMap = {
+      social: ['badge-social','📱 Social Post'],
+      banner: ['badge-banner','🖼️ Banner Ad'],
+      email:  ['badge-email', '📧 Email'],
+    };
+    const [cls, label] = badgeMap[selectedFormat] || ['badge-social', selectedFormat];
+    const badge = document.getElementById('outputBadge');
+    badge.className = `output-badge ${cls}`;
+    badge.textContent = label;
+
+    document.getElementById('platformBadge').textContent = platformIcons[data.platform] || data.platform;
+    document.getElementById('adCopyText').textContent = data.ad_copy;
+    document.getElementById('outputCard').classList.add('show');
+
+    const img = document.getElementById('productImage');
+    const ldr = document.getElementById('imgLoading');
+    ldr.classList.add('show');
+    img.style.display = 'none';
+    img.onload  = () => { ldr.classList.remove('show'); img.style.display = 'block'; };
+    img.onerror = () => { ldr.innerHTML = '⚠️ Image failed. Try again.'; };
+    img.src = data.image_url;
+  }
+
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    navigator.clipboard.writeText(document.getElementById('adCopyText').textContent).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => btn.textContent = '⎘ Copy to Clipboard', 2000);
+    });
+  });
+</script>
+</body>
+</html>
